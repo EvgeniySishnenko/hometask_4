@@ -160,33 +160,41 @@ function deleteTextNodesRecursive(where) {
    }
  */
 function collectDOMStat(root) {
-    let child = root.childNodes,
-        obj = {
-            tags: {},
-            classes: {},
-            texts: 0
-        };
+    let obj = {
+        tags: {},
+        classes: {},
+        texts: 0
+    };
 
-    for ( let i = 0; i < child.length; i++ ) {
-        let child = child.childNodes[i];
-          
-        if (child.nodeType === 3) {
-            obj.texts++;
-        } else if (child.nodeType === 1) {
-            let elem = child.tagName;
+    function recurs (root) {
+        let childRoot = root.childNodes;
 
-            for (let i = 0; i < elem.classList.length; i++) {
-                if (obj.elem.classList[i]) {
-                    obj.classes[elem.classList[i]]++;
-                } else {
-                    obj.classes[elem.classList[i]] = 1;
+        for (let i = 0; i < childRoot.length; i++ ) {
+            let child = childRoot[i];
+            
+            if (child.nodeType === 3) {
+                obj.texts++;
+            } else if (child.nodeType === 1) {
+                let elem = child;
+
+                for (let i = 0; i < elem.classList.length; i++) {
+                    if (obj.classes[elem.classList[i]]) {
+                        obj.classes[elem.classList[i]]++;
+                    } else {
+                        obj.classes[elem.classList[i]] = 1;
+                    }
                 }
+                if (obj.tags[elem.tagName]) {
+                    obj.tags[elem.tagName]++;
+                } else {
+                    obj.tags[elem.tagName] = 1;
+                }
+  
+                recurs(child);  
             }
-
-            obj.tags[elem.tagName]++;
-            collectDOMStat(child);  
         }
     }
+    recurs(root); 
 
     return obj;  
 }
@@ -238,7 +246,7 @@ function observeChildNodes(where, fn) {
                 fn(obj);   
             }
             if (mutation.removedNodes.length) {
-                const nodesArray = [...mutation.addedNodes];
+                const nodesArray = [...mutation.removedNodes];
 
                 obj = {
                     type: 'remove',
