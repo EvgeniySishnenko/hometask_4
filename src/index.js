@@ -128,7 +128,7 @@ function deleteTextNodes(where) {
  */
 function deleteTextNodesRecursive(where) {
     for (let i = 0; i < where.childNodes.length; i++) {
-        var child = where.childNodes[i];
+        let child = where.childNodes[i];
 
         if (child.nodeType === 3) {
             where.removeChild(child);
@@ -161,32 +161,28 @@ function deleteTextNodesRecursive(where) {
  */
 function collectDOMStat(root) {
     let child = root.childNodes,
-        obj = {},
-        countClass1 = 0,
-        countClass2 = 0,
-        countTag = 0,
-        someClass1 = document.querySelectorAll('.some-class-1'),
-        someClass2 = document.querySelectorAll('.some-class-2'),
-        countDiv = document.querySelector('body').getElementsByTagName('div').length,
-        countB = document.querySelector('.some-class-1').children.length;
+        obj = {
+            tags: {},
+            classes: {},
+            texts: 0
+        };
 
-    for (let i = 0; i < someClass1.length; i++) {
-        countClass1++;
-    }
-    for (let i = 0; i < someClass2.length; i++) {
-        countClass2++;
-    }
-    for (let i = 0; i < child.length; i++) {
-        if (child[i].nodeType === 3) {
-            countTag++; 
+    for ( let i = 0; i < child.length; i++ ) {
+        let child = child.childNodes[i];
+          
+        if (child.nodeType === 3) {
+            obj.texts++;
+        } else if (child.nodeType === 1) {
+            let elem = child.tagName,
+                elemClasses = elem.classList;
+
+            obj.tags[elem.tagName]++;
+            obj.classes[elemClasses]++;
+            collectDOMStat(child);  
         }
-        
     }
-    obj.tags = { DIV: countDiv, B: countB };
-    obj.classes = { 'some-class-1': countClass1, 'some-class-2': countClass2 };
-    obj.texts = countTag;
 
-    return obj;
+    return obj;  
 }
 
 /*
@@ -226,16 +222,27 @@ function observeChildNodes(where, fn) {
     let observer = new MutationObserver (function (mutations) {
 
         mutations.forEach(function (mutation) {
-            for (let i = 0; i < mutation.addedNodes.length; i++) {
-                obj.nodes = mutation.addedNodes[i].textContent;
+            if (mutation.addedNodes.length) {
+                const nodesArray = [...mutation.addedNodes];
+
+                obj = {
+                    type: 'insert',
+                    nodes: nodesArray
+                }
+                fn(obj);   
             }
-            for (let i = 0; i < mutation.removedNodes.length; i++) {
-                obj.nodes = mutation.removedNodes[i].textContent;
-            }
+            if (mutation.removedNodes.length) {
+                const nodesArray = [...mutation.addedNodes];
+
+                obj = {
+                    type: 'remove',
+                    nodes: nodesArray
+                }
+                fn(obj);   
+            }   
+               
         });
     });
-
-    fn(obj);
 }
 
 export {
