@@ -173,11 +173,17 @@ function collectDOMStat(root) {
         if (child.nodeType === 3) {
             obj.texts++;
         } else if (child.nodeType === 1) {
-            let elem = child.tagName,
-                elemClasses = elem.classList;
+            let elem = child.tagName;
+
+            for (let i = 0; i < elem.classList.length; i++) {
+                if (obj.elem.classList[i]) {
+                    obj.classes[elem.classList[i]]++;
+                } else {
+                    obj.classes[elem.classList[i]] = 1;
+                }
+            }
 
             obj.tags[elem.tagName]++;
-            obj.classes[elemClasses]++;
             collectDOMStat(child);  
         }
     }
@@ -243,6 +249,9 @@ function observeChildNodes(where, fn) {
                
         });
     });
+    
+    observer.observe(where, { attributes: true, childList: true, characterData: true });  
+    
 }
 
 export {
